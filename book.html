@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>I WRITE FOR YOU</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'EB Garamond', serif;
+      background-color: #fdfaf6;
+    }
+    #passwordPrompt {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #fff9f0;
+      z-index: 10;
+    }
+    #bookContainer {
+      display: none;
+      padding: 40px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .journal-title {
+      cursor: pointer;
+      margin: 20px 0;
+      font-size: 1.5em;
+      border-bottom: 1px solid #ccc;
+    }
+    .journal-content {
+      display: none;
+      padding: 20px;
+      background-color: #fff8ef;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    .add-entry, .save-entry {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #a86b32;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .add-entry:hover, .save-entry:hover {
+      background-color: #8a572a;
+    }
+    .edit-controls {
+      margin-top: 10px;
+    }
+    textarea, select, input[type="color"] {
+      margin: 5px;
+    }
+    h1, p {
+      margin: 5px;
+      text-align: center;
+    }
+    #passwordInput {
+      padding: 8px;
+      font-size: 1em;
+    }
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="passwordPrompt">
+    <h1>I WRITE FOR YOU</h1>
+    <p>_j</p>
+    <input type="password" id="passwordInput" placeholder="Enter password" />
+    <button onclick="checkPassword()">Enter</button>
+  </div>
+
+  <div id="bookContainer">
+    <h1>I WRITE FOR YOU</h1>
+    <p>_j</p>
+    <div id="journalList"></div>
+    <button class="add-entry" onclick="addJournalEntry()">Add a New One</button>
+    <button class="save-entry" onclick="saveJournalEntries()">Save</button>
+  </div>
+
+  <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7c3177b7e3.mp3?filename=click-124467.mp3"></audio>
+
+  <script>
+    const adminPassword = "aqxhjiln";
+    const viewerPassword = "lai_aouin";
+    let isViewer = false;
+    let journals = [
+      { title: "A New Beginning", content: "This is the first page of my journal." }
+    ];
+
+    function checkPassword() {
+      const input = document.getElementById("passwordInput").value;
+      if (input === adminPassword) {
+        isViewer = false;
+        document.getElementById("passwordPrompt").style.display = "none";
+        document.getElementById("bookContainer").style.display = "block";
+        renderJournals();
+      } else if (input === viewerPassword) {
+        isViewer = true;
+        document.getElementById("passwordPrompt").style.display = "none";
+        document.getElementById("bookContainer").style.display = "block";
+        document.querySelector(".add-entry").style.display = "none";
+        document.querySelector(".save-entry").style.display = "none";
+        renderJournals();
+      } else {
+        alert("Incorrect password");
+      }
+    }
+
+    function renderJournals() {
+      const list = document.getElementById("journalList");
+      list.innerHTML = "";
+      journals.forEach((j, index) => {
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "journal-title";
+        titleDiv.innerHTML = `<div contenteditable="${!isViewer}" id="title-${index}">${j.title}</div>`;
+        titleDiv.onclick = () => toggleJournal(index);
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "journal-content";
+        contentDiv.innerHTML = `
+          <div contenteditable="${!isViewer}" id="content-${index}" style="font-size:18px; text-align:left; font-family:'EB Garamond';">${j.content}</div>
+          ${!isViewer ? `
+          <div class="edit-controls">
+            <label>Font:
+              <select onchange="document.getElementById('content-${index}').style.fontFamily = this.value;">
+                <option value="EB Garamond">Garamond</option>
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times</option>
+              </select>
+            </label>
+            <label>Size:
+              <input type="number" value="18" onchange="document.getElementById('content-${index}').style.fontSize = this.value + 'px';" />
+            </label>
+            <label>Align:
+              <select onchange="document.getElementById('content-${index}').style.textAlign = this.value;">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+                <option value="justify">Justify</option>
+              </select>
+            </label>
+            <label>BG Color:
+              <input type="color" onchange="document.getElementById('content-${index}').parentElement.style.backgroundColor = this.value;" />
+            </label>
+          </div>
+          ` : ""}
+        `;
+        list.appendChild(titleDiv);
+        list.appendChild(contentDiv);
+      });
+    }
+
+    function toggleJournal(index) {
+      document.getElementById("clickSound").play();
+      const contents = document.querySelectorAll(".journal-content");
+      contents.forEach((c, i) => c.style.display = i === index ? "block" : "none");
+    }
+
+    function addJournalEntry() {
+      const newIndex = journals.length;
+      journals.push({ title: "Untitled", content: "Write something here..." });
+      renderJournals();
+      toggleJournal(newIndex);
+    }
+
+    function saveJournalEntries() {
+      for (let i = 0; i < journals.length; i++) {
+        journals[i].title = document.getElementById(`title-${i}`).innerText;
+        journals[i].content = document.getElementById(`content-${i}`).innerText;
+      }
+      alert("Your work has been saved!");
+    }
+  </script>
+</body>
+</html>
